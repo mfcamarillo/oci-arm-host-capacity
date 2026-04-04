@@ -25,6 +25,17 @@ jobs:
           echo "${{ secrets.OCI_PRIVATE_KEY_FILENAME }}" > /tmp/oci_private_key.pem
           chmod 600 /tmp/oci_private_key.pem
 
+      - name: Debug SSH key format
+        run: |
+          echo "SSH key word count:"
+          echo "$OCI_SSH_PUBLIC_KEY" | wc -w
+          echo "SSH key line count:"
+          echo "$OCI_SSH_PUBLIC_KEY" | wc -l
+          echo "SSH key first 20 chars:"
+          echo "$OCI_SSH_PUBLIC_KEY" | cut -c1-20
+        env:
+          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+
       - name: Run instance creation script
         run: php index.php
         env:
