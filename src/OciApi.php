@@ -22,20 +22,6 @@ class OciApi
     private CacheInterface $cache;
     private TooManyRequestsWaiterInterface $waiter;
 
-    /**
-     * @param OciConfig $config
-     * @param string $shape
-     * @param string $sshKey
-     * @param string $availabilityDomain
-     * @return array
-     *
-     * @throws ApiCallException
-     * @throws JsonException
-     * @throws OCI\Exception\PrivateKeyFileNotFoundException
-     * @throws OCI\Exception\SignerValidateException
-     * @throws OCI\Exception\SigningValidationFailedException
-     * @throws CurlException
-     */
     public function createInstance(
         OciConfig $config,
         string $shape,
@@ -66,7 +52,7 @@ class OciApi
     "availabilityDomain": "$availabilityDomain",
     "sourceDetails": {$config->getSourceDetails()},
     "createVnicDetails": {
-        "assignPublicIp": false,
+        "assignPublicIp": true,
         "subnetId": "{$config->subnetId}",
         "assignPrivateDnsRecord": true
     },
@@ -114,16 +100,6 @@ EOD;
         }
     }
 
-    /**
-     * @param OciConfig $config
-     * @return array
-     *
-     * @throws ApiCallException
-     * @throws JsonException
-     * @throws OCI\Exception\PrivateKeyFileNotFoundException
-     * @throws OCI\Exception\SignerValidateException
-     * @throws OCI\Exception\SigningValidationFailedException
-     */
     public function getInstances(OciConfig $config): array
     {
         $baseUrl = "{$this->getBaseApiUrl($config)}/instances/";
@@ -135,7 +111,6 @@ EOD;
     public function checkExistingInstances(OciConfig $config, array $listResponse, string $shape, int $maxRunningInstancesOfThatShape): string
     {
         $this->existingInstances = array_filter($listResponse, function ($instance) use ($shape) {
-//        $unacceptableStates = ['RUNNING', 'PROVISIONING', 'STARTING', 'STOPPED', 'STOPPING', 'TERMINATING'];
             $acceptableStates = ['TERMINATED'];
             return !in_array($instance['lifecycleState'], $acceptableStates) && $instance['shape'] === $shape;
         });
@@ -157,16 +132,6 @@ EOD;
         return "Already have an instance(s) [$displayNamesString] in state(s) (respectively) [$lifecycleStatesString]. User: $config->ociUserId\n";
     }
 
-    /**
-     * @param OciConfig $config
-     * @return array
-     *
-     * @throws ApiCallException
-     * @throws JsonException
-     * @throws OCI\Exception\PrivateKeyFileNotFoundException
-     * @throws OCI\Exception\SignerValidateException
-     * @throws OCI\Exception\SigningValidationFailedException
-     */
     public function getAvailabilityDomains(OciConfig $config): array
     {
         $data = null;
@@ -187,9 +152,6 @@ EOD;
         return $data;
     }
 
-    /**
-     * @return array
-     */
     public function getExistingInstances(): array
     {
         return $this->existingInstances;
@@ -200,21 +162,6 @@ EOD;
         $this->cache = $cache;
     }
 
-    /**
-     * @param OciConfig $config
-     * @param string $baseUrl
-     * @param string $method
-     * @param string|null $body
-     * @param array $params
-     * @return array
-     *
-     * @throws ApiCallException
-     * @throws JsonException
-     * @throws OCI\Exception\PrivateKeyFileNotFoundException
-     * @throws OCI\Exception\SignerValidateException
-     * @throws OCI\Exception\SigningValidationFailedException
-     * @throws CurlException
-     */
     public function call(
         OciConfig $config,
         string $baseUrl = '',
