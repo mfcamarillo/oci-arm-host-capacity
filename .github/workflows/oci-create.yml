@@ -2,7 +2,7 @@ name: OCI Create Instance
 
 on:
   schedule:
-    - cron: '*/4 * * * *'
+    - cron: '7,37 * * * *'
   workflow_dispatch:
 
 jobs:
