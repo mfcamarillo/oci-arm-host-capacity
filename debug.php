@@ -109,15 +109,52 @@ if ($firstDomain) {
 EOD;
     echo $body . "\n";
 
-    // JSON validacio
     echo "\n--- JSON validacio ---\n";
     $decoded = json_decode($body);
     if (json_last_error() === JSON_ERROR_NONE) {
         echo "JSON: ERVENYES\n";
     } else {
         echo "JSON HIBA: " . json_last_error_msg() . "\n";
-        echo "Hiba az SSH kulcsban vagy mas mezőben!\n";
     }
+
+    // === 4. ORACLE API VALASZ ===
+    echo "\n========================================\n";
+    echo "4. ORACLE API VALASZ (createInstance ELKULDI az elso AD-ra)\n";
+    echo "========================================\n";
+
+    $baseUrl = "https://iaas.{$config->region}.oraclecloud.com/20160918/instances/";
+
+    use Hitrov\OCI\Signer;
+    $signer = new Signer(
+        $config->tenancyId,
+        $config->ociUserId,
+        $config->keyFingerPrint,
+        $config->privateKeyFilename
+    );
+    $headers = $signer->getHeaders($baseUrl, 'POST', $body, 'application/json');
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $baseUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_CUSTOMREQUEST  => 'POST',
+        CURLOPT_POSTFIELDS     => $body,
+        CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_HEADER         => true,
+    ]);
+
+    $rawResponse = curl_exec($ch);
+    $httpCode    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $headerSize  = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+    curl_close($ch);
+
+    $responseBody = substr($rawResponse, $headerSize);
+    $decoded = json_decode($responseBody, true);
+    $prettyBody = $decoded ? json_encode($decoded, JSON_PRETTY_PRINT) : $responseBody;
+
+    echo "HTTP Status: $httpCode\n";
+    echo "Response Body:\n$prettyBody\n";
 } else {
-    echo "Nem sikerult availability domain-t lekerni, a body nem generalhato.\n";
+    echo "Nem sikerult availability domain-t lekerni.\n";
 }

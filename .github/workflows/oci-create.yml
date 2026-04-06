@@ -9,6 +9,8 @@ jobs:
   create:
     runs-on: ubuntu-latest
     name: Try to create OCI ARM instance
+    permissions:
+      contents: write
     steps:
       - name: Random delay (10-150s)
         run: |
@@ -32,7 +34,14 @@ jobs:
           chmod 600 /tmp/oci_private_key.pem
 
       - name: Run instance creation script
-        run: php index.php
+        run: |
+          mkdir -p logs
+          LOGFILE="logs/$(date -u +'%Y-%m-%d_%H-%M-%S').log"
+          echo "=== OCI Instance Creation Log ==" > $LOGFILE
+          echo "Date: $(date -u)" >> $LOGFILE
+          echo "" >> $LOGFILE
+          php index.php 2>&1 | tee -a $LOGFILE
+          echo "LOGFILE=$LOGFILE" >> $GITHUB_ENV
         env:
           OCI_REGION: ${{ secrets.OCI_REGION }}
           OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
@@ -51,3 +60,12 @@ jobs:
           TELEGRAM_BOT_API_KEY: ${{ secrets.TELEGRAM_BOT_API_KEY }}
           CACHE_AVAILABILITY_DOMAINS: 1
           TOO_MANY_REQUESTS_TIME_WAIT: 600
+
+      - name: Commit log file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          git add logs/
+          git diff --cached --quiet || git commit -m "log: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+          git push
