@@ -28,8 +28,8 @@ $config = new OciConfig(
 $api = new OciApi();
 $api->setCache(new FileCache($config));
 
-$shape = getenv('OCI_SHAPE');
-$sshKey = getenv('OCI_SSH_PUBLIC_KEY');
+$shape = trim(getenv('OCI_SHAPE'));
+$sshKey = trim(getenv('OCI_SSH_PUBLIC_KEY'));
 
 // === 1. MEGLEVO INSTANCE-OK ===
 echo "\n========================================\n";
@@ -109,8 +109,8 @@ if ($firstDomain) {
 EOD;
     echo $body . "\n";
 
-    // JSON validáció
-    echo "\n--- JSON validáció ---\n";
+    // JSON validacio
+    echo "\n--- JSON validacio ---\n";
     $decoded = json_decode($body);
     if (json_last_error() === JSON_ERROR_NONE) {
         echo "JSON: ERVENYES\n";

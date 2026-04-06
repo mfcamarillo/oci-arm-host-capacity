@@ -39,6 +39,10 @@ class OciApi
             $this->waiter->remove();
         }
 
+        // trim() removes leading/trailing whitespace and newlines from secrets
+        $sshKey = trim($sshKey);
+        $shape = trim($shape);
+
         $displayName = 'instance-' . date('Ymd-Hi');
 
         $body = <<<EOD
