@@ -1,6 +1,8 @@
 name: OCI Create Instance
 
 on:
+  schedule:
+    - cron: '*/4 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -8,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Try to create OCI ARM instance
     steps:
+      - name: Random delay (10-150s)
+        run: |
+          DELAY=$(( RANDOM % 141 + 10 ))
+          echo "Waiting ${DELAY} seconds..."
+          sleep $DELAY
+
       - uses: actions/checkout@v4
 
       - name: Install PHP
@@ -22,17 +30,6 @@ jobs:
         run: |
           echo "${{ secrets.OCI_PRIVATE_KEY_FILENAME }}" > /tmp/oci_private_key.pem
           chmod 600 /tmp/oci_private_key.pem
-
-      - name: Debug SSH key format
-        run: |
-          echo "SSH key word count:"
-          echo "$OCI_SSH_PUBLIC_KEY" | wc -w
-          echo "SSH key line count:"
-          echo "$OCI_SSH_PUBLIC_KEY" | wc -l
-          echo "SSH key first 20 chars:"
-          echo "$OCI_SSH_PUBLIC_KEY" | cut -c1-20
-        env:
-          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
 
       - name: Run instance creation script
         run: php index.php
