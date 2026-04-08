@@ -1,0 +1,15 @@
+=== OCI Instance Creation Log ==
+Date: Wed Apr  8 19:39:26 UTC 2026
+
+{
+    "code": "InternalError",
+    "message": "Out of host capacity."
+}
+{
+    "code": "InternalError",
+    "message": "Out of host capacity."
+}
+{
+    "code": "InternalError",
+    "message": "Out of host capacity."
+}
